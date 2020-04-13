@@ -1,0 +1,23 @@
+sudo: required
+
+services:
+    - Docker
+
+before_install:
+    - docker build -t adsrathore/complex1 -f ./client/Dockerfile.dev ./client
+
+scripts:
+    - docker run -e CI=true adsrathore/complex1 npm run test -- --coverage    
+
+after_success:
+    - docker build -t adsrathore/multi-client ./client
+    - docker build -t adsrathore/multi-nginx ./nginx
+    - docker build -t adsrathore/multi-server ./server
+    - docker build -t adsrathore/multi-worker ./worker
+    #login to docker hub
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+    #Push images to docker hub
+    - docker push adsrathore/multi-client
+    - docker push adsrathore/multi-nginx
+    - docker push adsrathore/multi-server
+    - docker push adsrathore/multi-worker
